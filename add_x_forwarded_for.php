@@ -9,17 +9,17 @@ Author URI: https://300m.com/
 */
 
 // Add X-Forwarded-For headers to correct the IP address seen in WordPress for browsers
-add_action( 'init', 'add_x_forwarded_for' );
-function add_x_forwarded_for() {
-    if(isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
-        $ip_address = $_SERVER['REMOTE_ADDR'];
+
+function correct_ip_address() {
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip_list = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $client_ip = trim(end($ip_list));
+
+        if (filter_var($client_ip, FILTER_VALIDATE_IP)) {
+            $_SERVER['REMOTE_ADDR'] = $client_ip;
+        }
     }
-    $_SERVER['REMOTE_ADDR'] = $ip_address;
 }
 
-// Register the plugin activation hook
-register_activation_hook( __FILE__, 'add_x_forwarded_for' );
-
+add_action('init', 'correct_ip_address');
 ?>
